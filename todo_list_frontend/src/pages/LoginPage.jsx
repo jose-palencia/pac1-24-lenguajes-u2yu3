@@ -1,12 +1,30 @@
 import { useNavigate } from 'react-router-dom';
+import { InputEmailValidation } from '../validations/input-email';
+import { useState } from 'react';
 
 export const LoginPage = () => {
-  const navigate = useNavigate();
+  const [email, setEmail] = useState('');
+  const [errors, setErrors] = useState([]);
 
+  const navigate = useNavigate();
+    console.log(errors.length);
   const handleSubmit = (e) => {
     e.preventDefault();
 
-    navigate('/'); 
+    const errorEmail = InputEmailValidation('Correo ELectrónico', email);
+
+    if(!errorEmail.validation) {
+        console.log('Hay errores con el email')
+        setErrors([...errors, errorEmail.message]);
+    }
+
+
+    console.log(errors);
+    if(errors.length === 0) {
+        console.log('no hay errores')
+        navigate('/'); 
+    }
+
 
   }
 
@@ -27,6 +45,9 @@ export const LoginPage = () => {
                         <input
                             type="text"
                             name="username"
+                            value={email}
+                            onChange={(e) => setEmail(e.target.value)}
+                            // required
                             id="username"
                             className="appearance-none bg-transparent border-none w-full
                             text-gray-700 mr-3 py-1 px-2 leading-tight focus:outline-none"
