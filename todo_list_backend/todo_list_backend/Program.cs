@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Identity;
 using todo_list_backend;
 using todo_list_backend.Database;
+using todo_list_backend.Entities;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -19,7 +20,7 @@ using (var scope = app.Services.CreateScope())
 
 	try
 	{
-		var userManager = service.GetRequiredService<UserManager<IdentityUser>>();
+		var userManager = service.GetRequiredService<UserManager<UserEntity>>();
 		var roleManager = service.GetRequiredService<RoleManager<IdentityRole>>();
 
 		await TodoListDbSeeder.LoadDataAsync(userManager, roleManager, loggerFactory);

@@ -4,6 +4,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
 using todo_list_backend.Database;
+using todo_list_backend.Entities;
 using todo_list_backend.Services;
 using todo_list_backend.Services.Interfaces;
 
@@ -27,12 +28,13 @@ namespace todo_list_backend
 
             // Add Custom Services
             services.AddTransient<ITasksService, TasksService>();
+            services.AddTransient<IAuthService, AuthService>();
 
             // Add Automapper Service
             services.AddAutoMapper(typeof(Startup));
 
             // Add Identity
-            services.AddIdentity<IdentityUser, IdentityRole>(options => 
+            services.AddIdentity<UserEntity, IdentityRole>(options => 
             {
                 options.SignIn.RequireConfirmedAccount = false;
             }).AddEntityFrameworkStores<TodoListDbContext>()

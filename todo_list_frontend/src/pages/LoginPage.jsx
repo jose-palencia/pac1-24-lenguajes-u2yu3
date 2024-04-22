@@ -1,28 +1,69 @@
 import { useNavigate } from 'react-router-dom';
 import { InputEmailValidation } from '../validations/input-email';
-import { useState } from 'react';
+import { useContext, useState } from 'react';
+// import useLocalStorage from '../hooks/useLocalStorage';
+import { InputRequiredValidation } from '../validations/input-required';
+import { Errors } from '../components'
+import { constants } from '../helpers/constants';
+import { AuthContext } from '../context/AuthContext';
 
 export const LoginPage = () => {
-  const [email, setEmail] = useState('');
+  const [loginForm, setLogin] = useState({
+    email: '',
+    password: ''
+  });
   const [errors, setErrors] = useState([]);
-
+//   const [token, setToken] = useLocalStorage('token', '');
+  const { login } = useContext(AuthContext);
   const navigate = useNavigate();
-    console.log(errors.length);
-  const handleSubmit = (e) => {
+
+  const { API_URL } = constants();
+
+  const handleSubmit = async (e) => {
     e.preventDefault();
 
-    const errorEmail = InputEmailValidation('Correo ELectrónico', email);
+    let newErrors = [];
 
+    const errorEmail = InputEmailValidation('Correo ELectrónico', loginForm.email);
     if(!errorEmail.validation) {
-        console.log('Hay errores con el email')
-        setErrors([...errors, errorEmail.message]);
+        newErrors.push(errorEmail.message);
     }
 
+    const errorEmailRequired = InputRequiredValidation('Correo ELectrónico', loginForm.email);
+    if(!errorEmailRequired.validation) {
+        newErrors.push(errorEmailRequired.message);
+    }
 
-    console.log(errors);
+    const errorPasswordRequired = InputRequiredValidation('Contraseña', loginForm.password);
+    if(!errorPasswordRequired.validation) {
+        newErrors.push(errorPasswordRequired.message);
+    }
+
+    setErrors(newErrors);
+
+    //console.log(errors);
     if(errors.length === 0) {
-        console.log('no hay errores')
-        navigate('/'); 
+        //console.log('no hay errores')
+        try {
+            const response = await fetch(`${API_URL}/auth/login`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(loginForm)
+            });
+
+            if(!response.ok) {
+                throw new Error('Error en el inicio de sesión');
+            } 
+
+            const result = await response.json();
+            login(result.data);
+
+        } catch (error) {
+          console.log(error);  
+        }
+
     }
 
 
@@ -41,13 +82,16 @@ export const LoginPage = () => {
                         Ingrese a su Cuenta
                     </h2>
 
+                    {errors.length > 0 ? <Errors errorList={errors} /> : null}
+
                     <div className="flex flex-col space-y-1 border-b-2 border-teal-500">
                         <input
-                            type="text"
+                            type="email"
                             name="username"
-                            value={email}
-                            onChange={(e) => setEmail(e.target.value)}
-                            // required
+                            autoComplete='off'
+                            value={loginForm.email}
+                            onChange={(e) => setLogin( {...loginForm, email: e.target.value})}
+                            required
                             id="username"
                             className="appearance-none bg-transparent border-none w-full
                             text-gray-700 mr-3 py-1 px-2 leading-tight focus:outline-none"
@@ -56,9 +100,12 @@ export const LoginPage = () => {
                     </div>
                     <div className="flex flex-col space-y-1 border-b-2 border-teal-500">
                         <input
+                            value={loginForm.password}
+                            onChange={(e) => setLogin({ ...loginForm, password: e.target.value })}
                             type="password"
                             name="password"
                             id="password"
+                            required
                             className="appearance-none bg-transparent border-none w-full
                             text-gray-700 mr-3 py-1 px-2 leading-tight focus:outline-none"
                             placeholder="Contraseña"

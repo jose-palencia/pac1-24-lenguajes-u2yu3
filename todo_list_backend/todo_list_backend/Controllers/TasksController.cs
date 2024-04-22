@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using todo_list_backend.Dtos;
 using todo_list_backend.Dtos.Tasks;
 using todo_list_backend.Services.Interfaces;
@@ -7,6 +8,7 @@ namespace todo_list_backend.Controllers
 {
     [Route("api/tasks")]
     [ApiController]
+    [Authorize(AuthenticationSchemes = "Bearer")]
     public class TasksController : ControllerBase
     {
         private readonly ITasksService _tasksService;

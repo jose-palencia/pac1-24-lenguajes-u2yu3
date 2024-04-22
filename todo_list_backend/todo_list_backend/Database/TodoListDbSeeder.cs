@@ -1,11 +1,12 @@
 ﻿using Microsoft.AspNetCore.Identity;
+using todo_list_backend.Entities;
 
 namespace todo_list_backend.Database
 {
     public static class TodoListDbSeeder
     {
         public static async Task LoadDataAsync(
-            UserManager<IdentityUser> userManager,
+            UserManager<UserEntity> userManager,
             RoleManager<IdentityRole> roleManager,
             ILoggerFactory loggerFactory
             ) 
@@ -20,7 +21,7 @@ namespace todo_list_backend.Database
 
                 if (!userManager.Users.Any()) 
                 {
-                    var userAdmin = new IdentityUser 
+                    var userAdmin = new UserEntity 
                     {
                         Email = "jperez@me.com",
                         UserName = "jperez@me.com"
@@ -29,7 +30,7 @@ namespace todo_list_backend.Database
                     await userManager.CreateAsync(userAdmin, "MiMamaMeMima001*");
                     await userManager.AddToRoleAsync(userAdmin, "ADMIN");
 
-                    var normalUser = new IdentityUser
+                    var normalUser = new UserEntity
                     {
                         Email = "mperez@me.com",
                         UserName = "mperez@me.com"

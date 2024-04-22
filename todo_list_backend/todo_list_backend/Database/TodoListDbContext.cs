@@ -5,7 +5,7 @@ using todo_list_backend.Entities;
 
 namespace todo_list_backend.Database
 {
-    public class TodoListDbContext : IdentityDbContext<IdentityUser>
+    public class TodoListDbContext : IdentityDbContext<UserEntity>
     {
         public TodoListDbContext(DbContextOptions options) : base(options)
         {
@@ -16,7 +16,7 @@ namespace todo_list_backend.Database
             base.OnModelCreating(builder);
             builder.HasDefaultSchema("security");
 
-            builder.Entity<IdentityUser>().ToTable("users");
+            builder.Entity<UserEntity>().ToTable("users");
             builder.Entity<IdentityRole>().ToTable("roles");
             builder.Entity<IdentityUserRole<string>>().ToTable("users_roles");
             builder.Entity<IdentityUserClaim<string>>().ToTable("users_claims");

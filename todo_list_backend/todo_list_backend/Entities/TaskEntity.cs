@@ -17,5 +17,11 @@ namespace todo_list_backend.Entities
 
         [Column("done")]
         public bool Done { get; set; }
+
+        [Column("user_id")]
+        public string UserId { get; set; }
+
+        [ForeignKey(nameof(UserId))]
+        public virtual UserEntity User { get; set; }
     }
 }
