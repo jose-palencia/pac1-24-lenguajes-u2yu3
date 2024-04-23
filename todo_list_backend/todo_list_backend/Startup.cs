@@ -33,6 +33,8 @@ namespace todo_list_backend
             // Add Automapper Service
             services.AddAutoMapper(typeof(Startup));
 
+            services.AddHttpContextAccessor();
+
             // Add Identity
             services.AddIdentity<UserEntity, IdentityRole>(options => 
             {

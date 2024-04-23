@@ -12,19 +12,26 @@ namespace todo_list_backend.Services
     {
         private readonly TodoListDbContext _context;
         private readonly IMapper _mapper;
-
+        private readonly HttpContext _httpContext;
+        private readonly string _USER_ID;
         public TasksService(
             TodoListDbContext context,
-            IMapper mapper)
+            IMapper mapper,
+            IHttpContextAccessor httpContextAccessor)
         {
             _context = context;
             _mapper = mapper;
+            _httpContext = httpContextAccessor.HttpContext;
+            var idClaim = _httpContext.User.Claims.Where(x => x.Type == "UserId")
+                .FirstOrDefault();
+            _USER_ID = idClaim?.Value;
         }
 
         public async Task<ResponseDto<List<TaskDto>>> GetListAsync(string searchTerm = "") 
         {
             var tasksEntity = await _context.Tasks
-                .Where(t => t.Description.Contains(searchTerm)).ToListAsync();
+                .Where(t => t.Description.Contains(searchTerm) &&
+                    t.UserId == _USER_ID).ToListAsync();
 
             var tasksDto = _mapper.Map<List<TaskDto>>(tasksEntity);
 
@@ -39,7 +46,8 @@ namespace todo_list_backend.Services
 
         public async Task<ResponseDto<TaskDto>> GetOneByIdAsync(Guid id) 
         {
-            var taskEntity = await _context.Tasks.FirstOrDefaultAsync(t => t.Id == id);
+            var taskEntity = await _context.Tasks
+                .FirstOrDefaultAsync(t => t.Id == id && t.UserId == _USER_ID);
 
             if (taskEntity is null) 
             {
@@ -66,6 +74,8 @@ namespace todo_list_backend.Services
         {
             var taskEntity = _mapper.Map<TaskEntity>(model);
 
+            taskEntity.UserId = _USER_ID;
+
             _context.Tasks.Add(taskEntity);
             await _context.SaveChangesAsync();
 
@@ -83,7 +93,7 @@ namespace todo_list_backend.Services
         public async Task<ResponseDto<TaskDto>> EditAsync(TaskEditDto dto, Guid id) 
         {
             var taskEntity = await _context.Tasks
-                .FirstOrDefaultAsync(t => t.Id == id);
+                .FirstOrDefaultAsync(t => t.Id == id && t.UserId == _USER_ID);
 
             if (taskEntity is null) 
             {
@@ -113,7 +123,8 @@ namespace todo_list_backend.Services
 
         public async Task<ResponseDto<TaskDto>> DeleteAsync(Guid id) 
         {
-            var taskEntity = await _context.Tasks.FirstOrDefaultAsync(t => t.Id == id);
+            var taskEntity = await _context.Tasks
+                .FirstOrDefaultAsync(t => t.Id == id && t.UserId == _USER_ID);
 
             if (taskEntity is null) 
             {
