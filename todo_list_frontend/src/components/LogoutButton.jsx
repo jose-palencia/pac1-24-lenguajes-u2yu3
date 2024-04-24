@@ -5,7 +5,7 @@ export const LogoutButton = () => {
     const navigate = useNavigate();
 
     const handleLogout = () => {
-        //console.log('Click en botón salir...');
+        localStorage.clear();
         navigate('/login')
     }
 

@@ -7,10 +7,16 @@ export const TodoListPage = () => {
   const [task, setTask] = useState({description: '', done: false});
   const [fetched, setFetched] = useState(true);
   const [mode, setMode] = useState('C');
+  const [user, setUser] = useState(JSON.parse(localStorage.getItem('user')) || {});
 
   useEffect(() => {
     if(fetched) {
-      fetch('https://localhost:7125/api/tasks')
+      fetch('https://localhost:7125/api/tasks', {
+        headers: {
+          'Authorization' : `Bearer ${user.token}`,
+          'Content-Type': 'application/json'
+        }
+      })
       .then((response) => response.json())
       .then((dataResponse) => {
         setTodoListItems(dataResponse.data);
@@ -26,6 +32,7 @@ export const TodoListPage = () => {
       const response = await fetch(`https://localhost:7125/api/tasks/${item.id}`, {
         method: 'PUT',
         headers: {
+          'Authorization' : `Bearer ${user.token}`,
           'Content-Type': 'application/json'
         },
         body: JSON.stringify(item)
@@ -47,6 +54,7 @@ export const TodoListPage = () => {
       {
         method: 'POST',
         headers: {
+          'Authorization' : `Bearer ${user.token}`,
           'Content-Type': 'application/json'
         },
         body: JSON.stringify(task)
@@ -69,6 +77,7 @@ export const TodoListPage = () => {
       {
         method: 'PUT',
         headers: {
+          'Authorization' : `Bearer ${user.token}`,
           'Content-Type': 'application/json'
         },
         body: JSON.stringify(task)
@@ -92,6 +101,7 @@ export const TodoListPage = () => {
       {
         method: 'DELETE',
         headers: {
+          'Authorization' : `Bearer ${user.token}`,
           'Content-Type' : 'application/json'
         }
       });
