@@ -15,16 +15,22 @@ namespace todo_list_backend.Services
         private readonly SignInManager<UserEntity> _signInManager;
         private readonly UserManager<UserEntity> _userManager;
         private readonly IConfiguration _configuration;
-
+        private readonly HttpContext _httpContext;
+        private readonly string _USER_ID;
         public AuthService(
             SignInManager<UserEntity> signInManager,
             UserManager<UserEntity> userManager,
-            IConfiguration configuration
+            IConfiguration configuration,
+            IHttpContextAccessor httpContextAccessor
             )
         {
             _signInManager = signInManager;
             _userManager = userManager;
             _configuration = configuration;
+            _httpContext = httpContextAccessor.HttpContext;
+            var idClaim = _httpContext.User.Claims.Where(x => x.Type == "UserId")
+                .FirstOrDefault();
+            _USER_ID = idClaim?.Value;
         }
 
         public async Task<ResponseDto<LoginResponseDto>> LoginAsync(LoginDto dto) 
@@ -80,6 +86,40 @@ namespace todo_list_backend.Services
             };
         }
 
+        public async Task<ResponseDto<LoginResponseDto>> RefreshTokenAsync() 
+        {
+            var userEntity = await _userManager.FindByIdAsync(_USER_ID);
+
+            var authClaims = new List<Claim>
+                {
+                    new Claim(ClaimTypes.Email, userEntity.Email),
+                    new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
+                    new Claim("UserId", userEntity.Id),
+                };
+
+            var userRoles = await _userManager.GetRolesAsync(userEntity);
+
+            foreach (var role in userRoles)
+            {
+                authClaims.Add(new Claim(ClaimTypes.Role, role));
+            }
+
+            var jwtToken = GetToken(authClaims);
+
+            return new ResponseDto<LoginResponseDto>
+            {
+                StatusCode = 200,
+                Status = true,
+                Message = "Token renovado satisfactoriamente",
+                Data = new LoginResponseDto
+                {
+                    Email = userEntity.Email,
+                    Token = new JwtSecurityTokenHandler().WriteToken(jwtToken),
+                    TokenExpiration = jwtToken.ValidTo,
+                }
+            };
+        }
+
         private JwtSecurityToken GetToken(List<Claim> authClaims)
         {
             var authSigninKey = new SymmetricSecurityKey(
@@ -88,7 +128,7 @@ namespace todo_list_backend.Services
             var token = new JwtSecurityToken(
                 issuer: _configuration["JWT:ValidIssuer"],
                 audience: _configuration["JWT:ValidAudience"],
-                expires: DateTime.Now.AddHours(1),
+                expires: DateTime.Now.AddMinutes(1),
                 claims: authClaims,
                 signingCredentials: new SigningCredentials(
                     authSigninKey, SecurityAlgorithms.HmacSha256)

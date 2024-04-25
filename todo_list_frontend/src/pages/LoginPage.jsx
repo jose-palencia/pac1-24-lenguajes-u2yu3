@@ -1,6 +1,6 @@
 import { useNavigate } from 'react-router-dom';
 import { InputEmailValidation } from '../validations/input-email';
-import { useContext, useState } from 'react';
+import { useContext, useEffect, useState } from 'react';
 // import useLocalStorage from '../hooks/useLocalStorage';
 import { InputRequiredValidation } from '../validations/input-required';
 import { Errors } from '../components'
@@ -14,8 +14,12 @@ export const LoginPage = () => {
   });
   const [errors, setErrors] = useState([]);
 //   const [token, setToken] = useLocalStorage('token', '');
-  const { login } = useContext(AuthContext);
+  const { login, refreshToken } = useContext(AuthContext);
   const navigate = useNavigate();
+
+  useEffect(() => {
+    refreshToken();
+  }, [])
 
   const { API_URL } = constants();
 

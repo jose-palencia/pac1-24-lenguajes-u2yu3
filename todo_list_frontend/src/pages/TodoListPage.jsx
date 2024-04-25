@@ -1,5 +1,6 @@
-import { useEffect, useState } from "react"
+import { useContext, useEffect, useState } from "react"
 import { Errors, LogoutButton, TodoForm, TodoList } from "../components"
+import { AuthContext } from '../context/AuthContext';
 
 export const TodoListPage = () => {
 
@@ -8,9 +9,11 @@ export const TodoListPage = () => {
   const [fetched, setFetched] = useState(true);
   const [mode, setMode] = useState('C');
   const [user, setUser] = useState(JSON.parse(localStorage.getItem('user')) || {});
+  const { refreshToken } = useContext(AuthContext);
 
   useEffect(() => {
     if(fetched) {
+      refreshToken();
       fetch('https://localhost:7125/api/tasks', {
         headers: {
           'Authorization' : `Bearer ${user.token}`,
